@@ -16,5 +16,14 @@
         </library>
       </libraries>
     </data-source>
+    <data-source source="LOCAL" name="Django default" uuid="a06075d1-28cb-4b46-8be5-dd17e66b10fe">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <imported>true</imported>
+      <remarks>$PROJECT_DIR$/ProjektKoncowy/settings.py</remarks>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:C:\Users\liroj\Desktop\Oddam_w_dobre_rece-master\ProjektKoncowy\db.sqlite3</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

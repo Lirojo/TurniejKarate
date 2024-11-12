@@ -16,10 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from TurniejKarate.views import HomeView, AthleteListView
+from TurniejKarate.views import HomeView, AthleteListView, AthleteCreateView, AthleteUpdateView, AthleteDeleteView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', HomeView.as_view(), name='home'),  # Strona główna
     path('athletes/', AthleteListView.as_view(), name='athlete_list'),  # Lista zawodników
+    path('athletes/add/', AthleteCreateView.as_view(), name='athlete_create'),
+    path('athletes/<int:pk>/edit/', AthleteUpdateView.as_view(), name='athlete_update'),  # Widok edytowania
+    path('athletes/<int:pk>/delete/', AthleteDeleteView.as_view(), name='athlete_delete'),  # Widok usuwania
 ]

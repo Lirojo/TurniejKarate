@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista zawodników</title>
+</head>
+<body>
+    <h1>Lista zawodników</h1>
+    <ul>
+        {% for athlete in athletes %}
+            <li>{{ athlete.first_name }} {{ athlete.last_name }}</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'home' %}">Powrót na stronę główną</a>
+</body>
+</html>

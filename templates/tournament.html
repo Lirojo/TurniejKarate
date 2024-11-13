@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turniej - Rozpiska</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+        }
+        .category {
+            margin-bottom: 30px;
+        }
+        .category h2 {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        .athlete-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .athlete-item {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .athlete-item strong {
+            display: block;
+            font-size: 1.2em;
+        }
+        .athlete-item p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Rozpiska turnieju</h1>
+
+    {% for tournament in tournaments %}
+        <div class="category">
+            <h2>{{ tournament.name }} ({{ tournament.get_type_display }})</h2>
+
+            <h3>Mężczyźni</h3>
+            {% for weight_category, athletes in male_categories.items %}
+                <div class="category">
+                    <h4> Kategoria: {{ weight_category }}</h4>
+                    <ul class="athlete-list">
+                        {% for athlete in athletes %}
+                            <li class="athlete-item">
+                                <strong>{{ athlete.first_name }} {{ athlete.last_name }}</strong>
+                                <p><strong>Wiek:</strong> {{ athlete.age }}</p>
+                                <p><strong>Waga:</strong> {{ athlete.weight }} kg</p>
+                                <p><strong>Poziom pasa:</strong> {{ athlete.get_belt_level_display }}</p>
+                                <p><strong>Styl karate:</strong> {{ athlete.karate_style }}</p>
+                                <p><strong>Klub:</strong> {{ athlete.club.name }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
+
+            <h3>Kobiety</h3>
+            {% for weight_category, athletes in female_categories.items %}
+                <div class="category">
+                    <h4>Kategoria: {{ weight_category }}</h4>
+                    <ul class="athlete-list">
+                        {% for athlete in athletes %}
+                            <li class="athlete-item">
+                                <strong>{{ athlete.first_name }} {{ athlete.last_name }}</strong>
+                                <p><strong>Wiek:</strong> {{ athlete.age }}</p>
+                                <p><strong>Waga:</strong> {{ athlete.weight }} kg</p>
+                                <p><strong>Poziom pasa:</strong> {{ athlete.get_belt_level_display }}</p>
+                                <p><strong>Styl karate:</strong> {{ athlete.karate_style }}</p>
+                                <p><strong>Klub:</strong> {{ athlete.club.name }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</body>
+</html>

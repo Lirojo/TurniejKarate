@@ -1,18 +1,105 @@
-<!-- athlete_form.html -->
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dodaj Zawodnika</title>
+    <title>{% if form.instance.pk %}Edytuj Zawodnika{% else %}Dodaj Nowego Zawodnika{% endif %}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .form-container h2 {
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select, .form-group button {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+        }
+        .form-group button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .form-group button:hover {
+            background-color: #45a049;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Dodaj nowego zawodnika</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Zapisz zawodnika</button>
-    </form>
-    <a href="{% url 'athlete_list' %}">Powrót do listy zawodników</a>
+    <div class="form-container">
+        <h2>{% if form.instance.pk %}Edytuj Zawodnika{% else %}Dodaj Nowego Zawodnika{% endif %}</h2>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.first_name.label_tag }}
+                {{ form.first_name }}
+            </div>
+            <div class="form-group">
+                {{ form.last_name.label_tag }}
+                {{ form.last_name }}
+            </div>
+            <div class="form-group">
+                {{ form.age.label_tag }}
+                {{ form.age }}
+            </div>
+            <div class="form-group">
+                {{ form.weight.label_tag }}
+                {{ form.weight }}
+            </div>
+            <div class="form-group">
+                {{ form.gender.label_tag }}
+                {{ form.gender }}
+            </div>
+            <div class="form-group">
+                {{ form.belt_level.label_tag }}
+                {{ form.belt_level }}
+            </div>
+            <div class="form-group">
+                {{ form.karate_style.label_tag }}
+                {{ form.karate_style }}
+            </div>
+            <div class="form-group">
+                {{ form.club.label_tag }}
+                {{ form.club }}
+            </div>
+            <div class="form-group">
+                {{ form.tournaments.label_tag }}
+                {{ form.tournaments }}
+                <p style="font-size: 12px; color: gray;">Przytrzymaj klawisz CTRL (lub CMD na Mac) aby wybrać wiele turniejów</p>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit">Zapisz</button>
+            </div>
+        </form>
+
+        <div class="back-link">
+            <a href="{% url 'athlete_list' %}">Powrót do listy zawodników</a>
+        </div>
+    </div>
 </body>
 </html>

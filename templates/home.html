@@ -16,10 +16,12 @@
             background-color: #f0f0f0;
             text-align: center;
         }
+
         .container {
             max-width: 600px;
             margin: auto;
         }
+
         .button {
             margin-top: 20px;
             padding: 10px 20px;
@@ -31,15 +33,17 @@
             cursor: pointer;
             text-decoration: none;
         }
+
         .button:hover {
             background-color: #45a049;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Witamy na stronie głównej</h1>
-        <a href="{% url 'athlete_list' %}" class="button">Pokaż listę zawodników</a>
-    </div>
+<div class="container">
+    <h1>Witamy na stronie głównej</h1>
+    <a href="{% url 'tournament' %}" class="button">Turniej</a>
+    <a href="{% url 'athlete_list' %}" class="button">Pokaż listę zawodników</a>
+</div>
 </body>
 </html>

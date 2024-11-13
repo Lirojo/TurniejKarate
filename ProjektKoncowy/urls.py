@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from TurniejKarate.views import HomeView, AthleteListView, AthleteCreateView, AthleteUpdateView, AthleteDeleteView
+from TurniejKarate.views import HomeView, AthleteListView, AthleteCreateView, AthleteUpdateView, AthleteDeleteView, TournamentView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +25,6 @@ urlpatterns = [
     path('athletes/add/', AthleteCreateView.as_view(), name='athlete_create'),
     path('athletes/<int:pk>/edit/', AthleteUpdateView.as_view(), name='athlete_update'),  # Widok edytowania
     path('athletes/<int:pk>/delete/', AthleteDeleteView.as_view(), name='athlete_delete'),  # Widok usuwania
+    path('tournament/', TournamentView.as_view(), name='tournament'),  # Strona turniejowa
+
 ]

@@ -17,14 +17,12 @@
             margin: 0;
             padding: 20px;
         }
-
         h1 {
             text-align: center;
             font-size: 2em;
             color: #333;
             margin-bottom: 20px;
         }
-
         ul {
             list-style-type: none;
             padding: 0;
@@ -32,7 +30,6 @@
             width: 100%;
             max-width: 800px;
         }
-
         li {
             padding: 20px;
             background-color: #fff;
@@ -42,7 +39,6 @@
             text-align: left;
             font-size: 1.2em;
         }
-
         a.button {
             display: inline-block;
             margin-top: 10px;
@@ -53,21 +49,17 @@
             border-radius: 5px;
             text-align: center;
         }
-
         a.button:hover {
             background-color: #45a049;
         }
-
         .athlete-details {
             margin-top: 10px;
             font-size: 1em;
             color: #555;
         }
-
         .athlete-actions {
             margin-top: 10px;
         }
-
         .athlete-actions a {
             margin-right: 10px;
             padding: 5px 10px;
@@ -76,44 +68,41 @@
             border-radius: 5px;
             text-decoration: none;
         }
-
         .athlete-actions a:hover {
             background-color: #4682B4;
         }
-
         .athlete-actions a.delete {
             background-color: #FF6347;
         }
-
         .athlete-actions a.delete:hover {
             background-color: #FF4500;
         }
     </style>
 </head>
 <body>
-<h1>Lista zawodników</h1>
-<ul>
-    {% for athlete in athletes %}
-        <li>
-            <strong>{{ athlete.first_name }} {{ athlete.last_name }}</strong>
-            <div class="athlete-details">
-                <p><strong>Wiek:</strong> {{ athlete.age }}</p>
-                <p><strong>Waga:</strong> {{ athlete.weight }} kg</p>
-                <p><strong>Płeć:</strong> {{ athlete.get_gender_display }}</p>
-                <p><strong>Poziom pasa:</strong> {{ athlete.get_belt_level_display }}</p>
-                <p><strong>Styl karate:</strong> {{ athlete.karate_style }}</p>
-                <p><strong>Klub:</strong> {{ athlete.club.name }}</p>
-            </div>
-            <div class="athlete-actions">
-                <a href="{% url 'athlete_update' athlete.pk %}" class="button">Edytuj</a>
-                <a href="{% url 'athlete_delete' athlete.pk %}" class="button delete">Usuń</a>
-            </div>
-        </li>
-    {% empty %}
-        <li>Brak zawodników w bazie danych.</li>
-    {% endfor %}
-</ul>
-<a href="{% url 'athlete_create' %}" class="button">Dodaj zawodnika</a>
-<a href="{% url 'home' %}" class="button">Powrót na stronę główną</a>
+    <h1>Lista zawodników</h1>
+    <ul>
+        {% for athlete in athletes %}
+            <li>
+                <strong>{{ athlete.first_name }} {{ athlete.last_name }}</strong>
+                <div class="athlete-details">
+                    <p><strong>Wiek:</strong> {{ athlete.age }}</p>
+                    <p><strong>Waga:</strong> {{ athlete.weight }} kg</p>
+                    <p><strong>Płeć:</strong> {{ athlete.get_gender_display }}</p>
+                    <p><strong>Poziom pasa:</strong> {{ athlete.get_belt_level_display }}</p>
+                    <p><strong>Styl karate:</strong> {{ athlete.karate_style }}</p>
+                    <p><strong>Klub:</strong> {{ athlete.club.name }}</p>
+                </div>
+                <div class="athlete-actions">
+                    <a href="{% url 'athlete_update' athlete.pk %}" class="button">Edytuj</a>
+                    <a href="{% url 'athlete_delete' athlete.pk %}" class="button delete">Usuń</a>
+                </div>
+            </li>
+        {% empty %}
+            <li>Brak zawodników w bazie danych.</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'athlete_create' %}" class="button">Dodaj zawodnika</a>
+    <a href="{% url 'home' %}" class="button">Powrót na stronę główną</a>
 </body>
 </html>

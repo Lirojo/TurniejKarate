@@ -1,6 +1,17 @@
 from django.db import models
 
 
+class Club(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Club"
+        verbose_name_plural = "Clubs"
+
+
 class Athlete(models.Model):
     BELT_LEVELS = [
         ('white', 'White'),
@@ -33,7 +44,7 @@ class Athlete(models.Model):
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     belt_level = models.CharField(max_length=10, choices=BELT_LEVELS)
     karate_style = models.CharField(max_length=20, choices=KARATE_STYLES)
-    club = models.CharField(max_length=100)
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, null=False)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.belt_level.capitalize()} Belt ({self.karate_style.capitalize()})"
@@ -41,17 +52,6 @@ class Athlete(models.Model):
     class Meta:
         verbose_name = "Athlete"
         verbose_name_plural = "Athletes"
-
-
-class Club(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "Club"
-        verbose_name_plural = "Clubs"
 
 
 class Coach(models.Model):

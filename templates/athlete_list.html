@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista zawodników</title>
     <style>
-        /* CSS do wyśrodkowania treści */
         body {
             display: flex;
             justify-content: center;
@@ -39,9 +38,13 @@
             text-align: left;
             font-size: 1.2em;
         }
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
         a.button {
             display: inline-block;
-            margin-top: 10px;
             padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
@@ -51,31 +54,6 @@
         }
         a.button:hover {
             background-color: #45a049;
-        }
-        .athlete-details {
-            margin-top: 10px;
-            font-size: 1em;
-            color: #555;
-        }
-        .athlete-actions {
-            margin-top: 10px;
-        }
-        .athlete-actions a {
-            margin-right: 10px;
-            padding: 5px 10px;
-            background-color: #1E90FF;
-            color: white;
-            border-radius: 5px;
-            text-decoration: none;
-        }
-        .athlete-actions a:hover {
-            background-color: #4682B4;
-        }
-        .athlete-actions a.delete {
-            background-color: #FF6347;
-        }
-        .athlete-actions a.delete:hover {
-            background-color: #FF4500;
         }
     </style>
 </head>
@@ -102,7 +80,9 @@
             <li>Brak zawodników w bazie danych.</li>
         {% endfor %}
     </ul>
-    <a href="{% url 'athlete_create' %}" class="button">Dodaj zawodnika</a>
-    <a href="{% url 'home' %}" class="button">Powrót na stronę główną</a>
+    <div class="button-container">
+        <a href="{% url 'athlete_create' %}" class="button">Dodaj zawodnika</a>
+        <a href="{% url 'home' %}" class="button">Powrót na stronę główną</a>
+    </div>
 </body>
 </html>

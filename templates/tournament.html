@@ -38,50 +38,50 @@
     </style>
 </head>
 <body>
-    <h1>Rozpiska turnieju</h1>
+    <h1>Turniej: {{ tournament.name }} ({{ tournament.get_type_display }})</h1>
 
-    {% for tournament in tournaments %}
-        <div class="category">
-            <h2>{{ tournament.name }} ({{ tournament.get_type_display }})</h2>
-
-            <h3>Mężczyźni</h3>
-            {% for weight_category, athletes in male_categories.items %}
-                <div class="category">
-                    <h4> Kategoria: {{ weight_category }}</h4>
-                    <ul class="athlete-list">
-                        {% for athlete in athletes %}
-                            <li class="athlete-item">
-                                <strong>{{ athlete.first_name }} {{ athlete.last_name }}</strong>
-                                <p><strong>Wiek:</strong> {{ athlete.age }}</p>
-                                <p><strong>Waga:</strong> {{ athlete.weight }} kg</p>
-                                <p><strong>Poziom pasa:</strong> {{ athlete.get_belt_level_display }}</p>
-                                <p><strong>Styl karate:</strong> {{ athlete.karate_style }}</p>
-                                <p><strong>Klub:</strong> {{ athlete.club.name }}</p>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </div>
+<!-- Mężczyźni -->
+<h3>Mężczyźni</h3>
+{% for weight_category, athletes in male_categories.items %}
+    <div class="category">
+        <h4>Kategoria wagowa: {{ weight_category.name }}</h4>
+        <ul class="athlete-list">
+            {% for athlete in athletes %}
+                <li class="athlete-item">
+                    <strong>{{ athlete.first_name }} {{ athlete.last_name }}</strong>
+                    <p><strong>Wiek:</strong> {{ athlete.age }}</p>
+                    <p><strong>Waga:</strong> {{ athlete.weight }} kg</p>
+                    <p><strong>Poziom pasa:</strong> {{ athlete.get_belt_level_display }}</p>
+                    <p><strong>Styl karate:</strong> {{ athlete.karate_style }}</p>
+                    <p><strong>Klub:</strong> {{ athlete.club.name }}</p>
+                </li>
             {% endfor %}
+        </ul>
+    </div>
+{% empty %}
+    <p>Brak zawodników w tej kategorii.</p>
+{% endfor %}
 
-            <h3>Kobiety</h3>
-            {% for weight_category, athletes in female_categories.items %}
-                <div class="category">
-                    <h4>Kategoria: {{ weight_category }}</h4>
-                    <ul class="athlete-list">
-                        {% for athlete in athletes %}
-                            <li class="athlete-item">
-                                <strong>{{ athlete.first_name }} {{ athlete.last_name }}</strong>
-                                <p><strong>Wiek:</strong> {{ athlete.age }}</p>
-                                <p><strong>Waga:</strong> {{ athlete.weight }} kg</p>
-                                <p><strong>Poziom pasa:</strong> {{ athlete.get_belt_level_display }}</p>
-                                <p><strong>Styl karate:</strong> {{ athlete.karate_style }}</p>
-                                <p><strong>Klub:</strong> {{ athlete.club.name }}</p>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </div>
+<!-- Kobiety -->
+<h3>Kobiety</h3>
+{% for weight_category, athletes in female_categories.items %}
+    <div class="category">
+        <h4>Kategoria wagowa: {{ weight_category.name }}</h4>
+        <ul class="athlete-list">
+            {% for athlete in athletes %}
+                <li class="athlete-item">
+                    <strong>{{ athlete.first_name }} {{ athlete.last_name }}</strong>
+                    <p><strong>Wiek:</strong> {{ athlete.age }}</p>
+                    <p><strong>Waga:</strong> {{ athlete.weight }} kg</p>
+                    <p><strong>Poziom pasa:</strong> {{ athlete.get_belt_level_display }}</p>
+                    <p><strong>Styl karate:</strong> {{ athlete.karate_style }}</p>
+                    <p><strong>Klub:</strong> {{ athlete.club.name }}</p>
+                </li>
             {% endfor %}
-        </div>
-    {% endfor %}
+        </ul>
+    </div>
+{% empty %}
+    <p>Brak zawodników w tej kategorii.</p>
+{% endfor %}
 </body>
 </html>

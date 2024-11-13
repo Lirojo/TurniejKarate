@@ -42,7 +42,7 @@
 <body>
 <div class="container">
     <h1>Witamy na stronie głównej</h1>
-    <a href="{% url 'tournament' %}" class="button">Turniej</a>
+    <a href="{% url 'tournament_detail' tournament_id=1 %}" class="button">Zobacz turniej</a>
     <a href="{% url 'athlete_list' %}" class="button">Pokaż listę zawodników</a>
 </div>
 </body>

@@ -16,15 +16,32 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from TurniejKarate.views import HomeView, AthleteListView, AthleteCreateView, AthleteUpdateView, AthleteDeleteView, TournamentView
+from TurniejKarate.views import (
+    HomeView,
+    AthleteListView,
+    AthleteCreateView,
+    AthleteUpdateView,
+    AthleteDeleteView,
+    TournamentListView,
+    TournamentDetailView,
+    RoundCreateView,
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', HomeView.as_view(), name='home'),  # Strona główna
-    path('athletes/', AthleteListView.as_view(), name='athlete_list'),  # Lista zawodników
-    path('athletes/add/', AthleteCreateView.as_view(), name='athlete_create'),
-    path('athletes/<int:pk>/edit/', AthleteUpdateView.as_view(), name='athlete_update'),  # Widok edytowania
-    path('athletes/<int:pk>/delete/', AthleteDeleteView.as_view(), name='athlete_delete'),  # Widok usuwania
-    path('tournament/', TournamentView.as_view(), name='tournament'),  # Strona turniejowa
 
+    # Ścieżki dla zawodników
+    path('athletes/', AthleteListView.as_view(), name='athlete_list'),  # Lista zawodników
+    path('athletes/add/', AthleteCreateView.as_view(), name='athlete_create'),  # Dodanie zawodnika
+    path('athletes/<int:pk>/edit/', AthleteUpdateView.as_view(), name='athlete_update'),  # Edytowanie zawodnika
+    path('athletes/<int:pk>/delete/', AthleteDeleteView.as_view(), name='athlete_delete'),  # Usuwanie zawodnika
+
+    # Ścieżki dla turniejów
+    path('tournament/', TournamentListView.as_view(), name='tournament_list'),  # Lista turniejów
+    path('tournament/<int:tournament_id>/', TournamentDetailView.as_view(), name='tournament_detail'),
+    # Szczegóły turnieju
+
+    # Ścieżka dla rund
+    path('rounds/add/', RoundCreateView.as_view(), name='round_create'),  # Dodanie rundy
 ]

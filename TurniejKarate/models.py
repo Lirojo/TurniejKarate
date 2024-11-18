@@ -1,49 +1,14 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 
 
-# Klasa do przechowywania kategorii wagowych
 class WeightCategory(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     min_weight = models.DecimalField(max_digits=5, decimal_places=2)
     max_weight = models.DecimalField(max_digits=5, decimal_places=2)
 
     def __str__(self):
         return f"{self.name} ({self.min_weight}kg - {self.max_weight}kg)"
-
-
-class Tournament(models.Model):
-    TOURNAMENT_TYPES = [
-        ('CHAMPIONSHIP', 'Championship'),
-        ('REGIONAL', 'Regional'),
-        ('CLUB', 'Club Tournament'),
-    ]
-
-    name = models.CharField(max_length=100)
-    type = models.CharField(max_length=20, choices=TOURNAMENT_TYPES, default='CLUB')
-    date = models.DateField()
-
-    def __str__(self):
-        return f"{self.name} ({self.get_type_display()})"
-
-
-# Klasa Round (runda) z dwoma zawodnikami
-class Round(models.Model):
-    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='rounds')
-    athlete1 = models.ForeignKey('Athlete', on_delete=models.CASCADE, related_name='rounds_as_athlete1')
-    athlete2 = models.ForeignKey('Athlete', on_delete=models.CASCADE, related_name='rounds_as_athlete2')
-    winner = models.ForeignKey('Athlete', on_delete=models.SET_NULL, null=True, blank=True, related_name='rounds_won')
-    round_number = models.PositiveIntegerField()
-
-    def set_winner(self, winner_athlete):
-        """Ustaw zwycięzcę rundy"""
-        if winner_athlete == self.athlete1 or winner_athlete == self.athlete2:
-            self.winner = winner_athlete
-            self.save()
-        else:
-            raise ValueError("Winner must be one of the athletes in the round.")
-
-    def __str__(self):
-        return f"Round {self.round_number} - {self.athlete1} vs {self.athlete2} (Winner: {self.winner})"
 
 
 class Club(models.Model):
@@ -52,12 +17,7 @@ class Club(models.Model):
     def __str__(self):
         return self.name
 
-    class Meta:
-        verbose_name = "Club"
-        verbose_name_plural = "Clubs"
 
-
-# Zaktualizowany model Athlete z kategorią wagową
 class Athlete(models.Model):
     BELT_LEVELS = [
         ('white', 'White'),
@@ -86,20 +46,60 @@ class Athlete(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     age = models.PositiveIntegerField()
-    weight = models.DecimalField(max_digits=5, decimal_places=2)  # w kilogramach
+    weight = models.DecimalField(max_digits=5, decimal_places=2)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     belt_level = models.CharField(max_length=10, choices=BELT_LEVELS)
     karate_style = models.CharField(max_length=20, choices=KARATE_STYLES)
-    club = models.ForeignKey(Club, on_delete=models.CASCADE, null=False)
-    tournaments = models.ManyToManyField(Tournament, related_name='athletes', blank=True)
-    weight_category = models.ForeignKey(WeightCategory, on_delete=models.SET_NULL, null=True,blank=True)  # przypisanie do kategorii wagowej
+    club = models.ForeignKey(Club, on_delete=models.CASCADE)
+    weight_category = models.ForeignKey(WeightCategory, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def clean(self):
+        # Walidacja, by waga zawodnika była zgodna z kategorią wagową
+        if self.weight_category and not (
+                self.weight_category.min_weight <= self.weight <= self.weight_category.max_weight
+        ):
+            raise ValidationError(
+                f"Zawodnik musi mieć wagę w przedziale {self.weight_category.min_weight}kg - {self.weight_category.max_weight}kg dla kategorii {self.weight_category.name}"
+            )
+        super().clean()
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.belt_level.capitalize()} Belt ({self.karate_style.capitalize()})"
 
-    class Meta:
-        verbose_name = "Athlete"
-        verbose_name_plural = "Athletes"
+
+class Tournament(models.Model):
+    TOURNAMENT_TYPES = [
+        ('CHAMPIONSHIP', 'Championship'),
+        ('REGIONAL', 'Regional'),
+        ('CLUB', 'Club Tournament'),
+    ]
+
+    name = models.CharField(max_length=100)
+    type = models.CharField(max_length=20, choices=TOURNAMENT_TYPES, default='CLUB')
+    date = models.DateField()
+    athletes = models.ManyToManyField(Athlete, related_name='tournaments')
+
+    def __str__(self):
+        return f"{self.name} ({self.get_type_display()})"
+
+
+class Round(models.Model):
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='rounds')
+    athlete1 = models.ForeignKey('Athlete', on_delete=models.CASCADE, related_name='rounds_as_athlete1')
+    athlete2 = models.ForeignKey('Athlete', on_delete=models.CASCADE, related_name='rounds_as_athlete2')
+    winner = models.ForeignKey('Athlete', on_delete=models.SET_NULL, null=True, blank=True, related_name='rounds_won')
+    round_number = models.PositiveIntegerField()
+
+    def set_winner(self, winner_athlete):
+        """Ustaw zwycięzcę rundy"""
+        if winner_athlete != self.athlete1 and winner_athlete != self.athlete2:
+            raise ValueError("Zwycięzca musi być jednym z zawodników w rundzie.")
+        self.winner = winner_athlete
+        self.save()
+
+    def __str__(self):
+        winner = self.winner if self.winner else "No Winner"
+        return f"Round {self.round_number} - {self.athlete1} vs {self.athlete2} (Winner: {winner})"
 
 
 class Coach(models.Model):
@@ -109,7 +109,3 @@ class Coach(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.club.name}"
-
-    class Meta:
-        verbose_name = "Coach"
-        verbose_name_plural = "Coaches"

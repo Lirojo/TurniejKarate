@@ -25,6 +25,8 @@ from TurniejKarate.views import (
     TournamentListView,
     TournamentDetailView,
     RoundCreateView,
+    RoundListView,
+    add_round
 )
 
 urlpatterns = [
@@ -44,4 +46,7 @@ urlpatterns = [
 
     # Ścieżka dla rund
     path('rounds/add/', RoundCreateView.as_view(), name='round_create'),  # Dodanie rundy
+    path('add-round/', add_round, name='add_round'),  # Formularz dodawania rundy
+    path('rounds/', RoundListView.as_view(), name='round_list'),  # Lista rund
+
 ]

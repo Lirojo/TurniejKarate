@@ -1,7 +1,8 @@
-from django.shortcuts import render, get_object_or_404
-from django.urls import reverse_lazy
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse_lazy,reverse
 from django.views.generic import TemplateView, ListView, CreateView, UpdateView, DeleteView
 from .models import Athlete, Tournament, Round, WeightCategory
+from .forms import RoundForm
 
 
 class HomeView(TemplateView):
@@ -17,14 +18,14 @@ class AthleteListView(ListView):
 class AthleteCreateView(CreateView):
     model = Athlete
     template_name = 'athlete_form.html'  # Szablon formularza dodawania zawodnika
-    fields = ['first_name', 'last_name', 'age', 'weight', 'gender', 'belt_level', 'karate_style', 'club', 'tournaments']
+    fields = ['first_name', 'last_name', 'age', 'weight', 'gender', 'belt_level', 'karate_style', 'club',]
     success_url = reverse_lazy('athlete_list')  # Po dodaniu zawodnika wracamy na listę zawodników
 
 
 class AthleteUpdateView(UpdateView):
     model = Athlete
     template_name = 'athlete_form.html'  # Formularz do edycji zawodnika
-    fields = ['first_name', 'last_name', 'age', 'weight', 'gender', 'belt_level', 'karate_style', 'club', 'tournaments']
+    fields = ['first_name', 'last_name', 'age', 'weight', 'gender', 'belt_level', 'karate_style', 'club',]
     success_url = reverse_lazy('athlete_list')  # Po edycji wracamy na listę zawodników
 
 
@@ -49,47 +50,69 @@ class TournamentDetailView(TemplateView):
         tournament = get_object_or_404(Tournament, id=tournament_id)
         context['tournament'] = tournament
 
-        # Pobieramy zawodników przypisanych do turnieju
-        male_athletes = Athlete.objects.filter(tournaments=tournament, gender='M')
-        female_athletes = Athlete.objects.filter(tournaments=tournament, gender='F')
+        # Pobieramy wszystkie rundy dla danego turnieju
+        rounds = tournament.rounds.all()
 
-        # Przygotowanie kategorii wagowych dla mężczyzn i kobiet
-        weight_categories = WeightCategory.objects.all()
+        male_athletes = set()
+        female_athletes = set()
 
-        # Kategoria wagowa dla mężczyzn
-        male_categories = {}
-        for category in weight_categories:
-            athletes_in_category = male_athletes.filter(weight_category=category)
-            if athletes_in_category.exists():
-                male_categories[category] = athletes_in_category
+        for round_instance in rounds:
+            male_athletes.update([round_instance.athlete1, round_instance.athlete2])
+            female_athletes.update([round_instance.athlete1, round_instance.athlete2])
 
-        # Kategoria wagowa dla kobiet
-        female_categories = {}
-        for category in weight_categories:
-            athletes_in_category = female_athletes.filter(weight_category=category)
-            if athletes_in_category.exists():
-                female_categories[category] = athletes_in_category
-
-        # Zawodnicy bez przypisanej kategorii wagowej (zarówno dla mężczyzn, jak i kobiet)
-        male_without_category = male_athletes.filter(weight_category__isnull=True)
-        female_without_category = female_athletes.filter(weight_category__isnull=True)
-
-        if male_without_category.exists():
-            male_categories["Brak kategorii"] = male_without_category
-        if female_without_category.exists():
-            female_categories["Brak kategorii"] = female_without_category
+        # Grupowanie zawodników według kategorii wagowych
+        male_categories = self.group_athletes_by_category(male_athletes)
+        female_categories = self.group_athletes_by_category(female_athletes)
 
         context['male_categories'] = male_categories
         context['female_categories'] = female_categories
 
         return context
 
+    def group_athletes_by_category(self, athletes):
+        categories = {}
+        for category in WeightCategory.objects.all():
+            athletes_in_category = [athlete for athlete in athletes if athlete.weight_category == category]
+            if athletes_in_category:
+                categories[category] = athletes_in_category
+        return categories
+
 
 class RoundCreateView(CreateView):
     model = Round
     template_name = 'round_form.html'
-    fields = ['tournament', 'athlete1', 'athlete2', 'round_number', 'winner']
+    fields = ['tournament', 'athlete1', 'athlete2', 'round_number']
 
     def form_valid(self, form):
-        # Logika do zapisania wyniku rundy i ewentualne ustawienie zwycięzcy
+        athlete1 = form.cleaned_data['athlete1']
+        athlete2 = form.cleaned_data['athlete2']
+        tournament = form.cleaned_data['tournament']
+
+        # Sprawdzamy, czy obaj zawodnicy są przypisani do turnieju
+        if athlete1 not in tournament.athletes.all() or athlete2 not in tournament.athletes.all():
+            form.add_error(None, "Obaj zawodnicy muszą brać udział w wybranym turnieju.")
+            return self.form_invalid(form)
+
         return super().form_valid(form)
+
+    success_url = reverse_lazy('round_list')
+
+class RoundListView(ListView):
+    model = Round
+    template_name = 'round_list.html'
+    context_object_name = 'rounds'
+
+    def get_queryset(self):
+        # Optymalizacja zapytań przy użyciu select_related
+        return Round.objects.select_related('tournament', 'athlete1', 'athlete2').all()
+
+
+def add_round(request):
+    if request.method == 'POST':
+        form = RoundForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('round_list')  # Przekierowanie na listę rund
+    else:
+        form = RoundForm()
+    return render(request, 'round_form.html', {'form': form})

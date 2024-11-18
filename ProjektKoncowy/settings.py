@@ -77,8 +77,12 @@ WSGI_APPLICATION = 'ProjektKoncowy.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ProjektKoncowy',
+        'USER': 'admin',
+        'PASSWORD': 'admin_password',
+        'HOST': 'localhost',  # lub inny adres, np. IP serwera bazy danych
+        'PORT': '5432',  # Domyślny port PostgreSQL
     }
 }
 

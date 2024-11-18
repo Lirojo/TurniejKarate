@@ -1,88 +1,55 @@
-<!-- athlete_list.html -->
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista zawodników</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-            font-size: 2em;
-            color: #333;
-            margin-bottom: 20px;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-            width: 100%;
-            max-width: 800px;
-        }
-        li {
-            padding: 20px;
-            background-color: #fff;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            text-align: left;
-            font-size: 1.2em;
-        }
-        .button-container {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        a.button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            text-align: center;
-        }
-        a.button:hover {
-            background-color: #45a049;
-        }
-    </style>
-</head>
-<body>
-    <h1>Lista zawodników</h1>
-    <ul>
-        {% for athlete in athletes %}
-            <li>
-                <strong>{{ athlete.first_name }} {{ athlete.last_name }}</strong>
-                <div class="athlete-details">
-                    <p><strong>Wiek:</strong> {{ athlete.age }}</p>
-                    <p><strong>Waga:</strong> {{ athlete.weight }} kg</p>
-                    <p><strong>Płeć:</strong> {{ athlete.get_gender_display }}</p>
-                    <p><strong>Poziom pasa:</strong> {{ athlete.get_belt_level_display }}</p>
-                    <p><strong>Styl karate:</strong> {{ athlete.karate_style }}</p>
-                    <p><strong>Klub:</strong> {{ athlete.club.name }}</p>
-                </div>
-                <div class="athlete-actions">
-                    <a href="{% url 'athlete_update' athlete.pk %}" class="button">Edytuj</a>
-                    <a href="{% url 'athlete_delete' athlete.pk %}" class="button delete">Usuń</a>
-                </div>
-            </li>
-        {% empty %}
-            <li>Brak zawodników w bazie danych.</li>
-        {% endfor %}
-    </ul>
-    <div class="button-container">
-        <a href="{% url 'athlete_create' %}" class="button">Dodaj zawodnika</a>
-        <a href="{% url 'home' %}" class="button">Powrót na stronę główną</a>
-    </div>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}Lista Zawodników{% endblock %}
+
+{% block content %}
+  <h2>Lista Zawodników</h2>
+
+  <!-- Przycisk do dodania nowego zawodnika -->
+  <a href="{% url 'athlete_create' %}" class="btn btn-success mb-3">Dodaj Zawodnika</a>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Imię</th>
+        <th>Nazwisko</th>
+        <th>Wiek</th>
+        <th>Waga</th>
+        <th>Poziom Pasa</th>
+        <th>Styl Karate</th>
+        <th>Klub</th>
+        <th>Akcje</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for athlete in athletes %}
+        <tr>
+          <td>{{ athlete.first_name }}</td>
+          <td>{{ athlete.last_name }}</td>
+          <td>{{ athlete.age }}</td>
+          <td>{{ athlete.weight }} kg</td>
+          <td>{{ athlete.belt_level }}</td>
+          <td>{{ athlete.karate_style }}</td>
+          <td>{{ athlete.club }}</td>
+          <td>
+            <a href="{% url 'athlete_update' athlete.id %}" class="btn btn-primary"><i class="fas fa-edit"></i> Edytuj</a>
+            <a href="{% url 'athlete_delete' athlete.id %}" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Usuń</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Paginacja -->
+  <div class="pagination">
+    {% if athletes.has_previous %}
+      <a href="?page=1" class="btn btn-outline-secondary">&laquo; Pierwsza</a>
+      <a href="?page={{ athletes.previous_page_number }}" class="btn btn-outline-secondary">Poprzednia</a>
+    {% endif %}
+    <span class="btn btn-outline-secondary">Strona {{ athletes.number }} z {{ athletes.paginator.num_pages }}</span>
+    {% if athletes.has_next %}
+      <a href="?page={{ athletes.next_page_number }}" class="btn btn-outline-secondary">Następna</a>
+      <a href="?page={{ athletes.paginator.num_pages }}" class="btn btn-outline-secondary">Ostatnia &raquo;</a>
+    {% endif %}
+  </div>
+{% endblock %}

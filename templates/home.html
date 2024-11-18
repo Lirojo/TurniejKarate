@@ -1,49 +1,10 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page</title>
-    <style>
-        /* CSS dla wyśrodkowania tekstu i przycisku */
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            text-align: center;
-        }
+{% extends 'base.html' %}
 
-        .container {
-            max-width: 600px;
-            margin: auto;
-        }
+{% block title %}Strona Główna{% endblock %}
 
-        .button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .button:hover {
-            background-color: #45a049;
-        }
-    </style>
-</head>
-<body>
-<div class="container">
-    <h1>Witamy na stronie głównej</h1>
-    <a href="{% url 'tournament_detail' tournament_id=1 %}" class="button">Zobacz turniej</a>
-    <a href="{% url 'athlete_list' %}" class="button">Pokaż listę zawodników</a>
-</div>
-</body>
-</html>
+{% block content %}
+  <h2>Witaj na stronie głównej!</h2>
+  <p>To jest przykładowa aplikacja zarządzająca zawodnikami i turniejami karate.</p>
+  <a href="{% url 'athlete_list' %}" class="btn btn-primary">Zobacz Listę Zawodników</a>
+  <a href="{% url 'round_list' %}" class="btn btn-secondary">Zobacz Rundy</a>
+{% endblock %}

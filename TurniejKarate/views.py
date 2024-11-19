@@ -97,14 +97,70 @@ class RoundCreateView(CreateView):
 
     success_url = reverse_lazy('round_list')
 
+
 class RoundListView(ListView):
     model = Round
     template_name = 'round_list.html'
-    context_object_name = 'rounds'
+    context_object_name = 'tournaments'
 
-    def get_queryset(self):
-        # Optymalizacja zapytań przy użyciu select_related
-        return Round.objects.select_related('tournament', 'athlete1', 'athlete2').all()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Pobieramy wszystkie turnieje
+        tournaments = Tournament.objects.prefetch_related('rounds', 'rounds__athlete1', 'rounds__athlete2')
+
+        tournament_data = []
+        for tournament in tournaments:
+            # Pobierz rundy dla turnieju
+            rounds = tournament.rounds.all()
+
+            # Oddziel zawodników na podstawie płci
+            male_athletes = set()
+            female_athletes = set()
+
+            for round_instance in rounds:
+                if round_instance.athlete1.gender == 'M':
+                    male_athletes.add(round_instance.athlete1)
+                elif round_instance.athlete1.gender == 'F':
+                    female_athletes.add(round_instance.athlete1)
+
+                if round_instance.athlete2.gender == 'M':
+                    male_athletes.add(round_instance.athlete2)
+                elif round_instance.athlete2.gender == 'F':
+                    female_athletes.add(round_instance.athlete2)
+
+            # Kategorie wagowe dla mężczyzn
+            male_categories = {}
+            for category in WeightCategory.objects.all():
+                athletes_in_category = [athlete for athlete in male_athletes if athlete.weight_category == category]
+                if athletes_in_category:
+                    male_categories[category] = athletes_in_category
+
+            # Kategorie wagowe dla kobiet
+            female_categories = {}
+            for category in WeightCategory.objects.all():
+                athletes_in_category = [athlete for athlete in female_athletes if athlete.weight_category == category]
+                if athletes_in_category:
+                    female_categories[category] = athletes_in_category
+
+            # Dodaj brak kategorii
+            male_without_category = [athlete for athlete in male_athletes if athlete.weight_category is None]
+            female_without_category = [athlete for athlete in female_athletes if athlete.weight_category is None]
+
+            if male_without_category:
+                male_categories["Brak kategorii"] = male_without_category
+            if female_without_category:
+                female_categories["Brak kategorii"] = female_without_category
+
+            tournament_data.append({
+                'tournament': tournament,
+                'rounds': rounds,
+                'male_categories': male_categories,
+                'female_categories': female_categories
+            })
+
+        context['tournament_data'] = tournament_data
+        return context
 
 
 def add_round(request):
@@ -113,6 +169,9 @@ def add_round(request):
         if form.is_valid():
             form.save()
             return redirect('round_list')  # Przekierowanie na listę rund
+        else:
+            # Logujemy błędy formularza
+            print(form.errors)  # Możesz też użyć logowania
     else:
         form = RoundForm()
     return render(request, 'round_form.html', {'form': form})

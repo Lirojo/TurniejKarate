@@ -1,47 +1,51 @@
-{% extends 'base.html' %}
-
-{% block title %}Lista Rund{% endblock %}
+{% extends "base.html" %}
 
 {% block content %}
-  <h2>Lista Rund</h2>
+<h1>Lista Rund</h1>
 
-  <!-- Wyświetlenie nazwy turnieju nad tabelą -->
-  {% if rounds %}
-    <h3>Turniej: {{ rounds.0.tournament.name }}</h3> <!-- Zakładając, że każda runda należy do tego samego turnieju -->
-  {% endif %}
-  
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Runda</th>
-        <th>Zawodnik 1</th>
-        <th>Zawodnik 2</th>
-        <th>Wynik</th>
-        <th>Zwycięzca</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for round in rounds %}
-        <tr>
-          <td>{{ round.round_number }}</td>
-          <td>{{ round.athlete1.first_name }} {{ round.athlete1.last_name }}</td>
-          <td>{{ round.athlete2.first_name }} {{ round.athlete2.last_name }}</td>
-          <td>
-            {% if round.winner %}
-              {{ round.winner.first_name }} {{ round.winner.last_name }}
-            {% else %}
-              Brak
-            {% endif %}
-          </td>
-          <td>
-            {% if round.winner %}
-              Zwycięzca
-            {% else %}
-              -
-            {% endif %}
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+{% for tournament_info in tournament_data %}
+    <h2>{{ tournament_info.tournament.name }} ({{ tournament_info.tournament.get_type_display }})</h2>
+    
+    <h3>Rundy:</h3>
+    <ul>
+        {% for round in tournament_info.rounds %}
+            <li>
+                Runda {{ round.round_number }}: 
+                {{ round.athlete1 }} vs {{ round.athlete2 }} - Zwycięzca: 
+                {% if round.winner %} {{ round.winner }} {% else %} Brak {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h3>Kategorie wagowe:</h3>
+
+    <h4>Mężczyźni:</h4>
+    <ul>
+        {% for category, athletes in tournament_info.male_categories.items %}
+            <li>
+                <strong>{{ category }}</strong>:
+                <ul>
+                    {% for athlete in athletes %}
+                        <li>{{ athlete }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h4>Kobiety:</h4>
+    <ul>
+        {% for category, athletes in tournament_info.female_categories.items %}
+            <li>
+                <strong>{{ category }}</strong>:
+                <ul>
+                    {% for athlete in athletes %}
+                        <li>{{ athlete }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+{% endfor %}
+
 {% endblock %}

@@ -52,6 +52,7 @@ class Athlete(models.Model):
     karate_style = models.CharField(max_length=20, choices=KARATE_STYLES)
     club = models.ForeignKey(Club, on_delete=models.CASCADE)
     weight_category = models.ForeignKey(WeightCategory, on_delete=models.SET_NULL, null=True, blank=True)
+    place = models.PositiveIntegerField(null=True, blank=True)  # Pozycja w turnieju
 
     def clean(self):
         # Walidacja, by waga zawodnika była zgodna z kategorią wagową
@@ -96,6 +97,19 @@ class Round(models.Model):
             raise ValueError("Zwycięzca musi być jednym z zawodników w rundzie.")
         self.winner = winner_athlete
         self.save()
+
+    def save(self, *args, **kwargs):
+        if self.winner:
+            # Przegrany zawodnik odpada z turnieju
+            loser = self.athlete2 if self.winner == self.athlete1 else self.athlete1
+            self.tournament.athletes.remove(loser)
+
+            # Przypisanie miejsca przegranemu
+            total_athletes = self.tournament.athletes.count() + 1  # +1 bo przegrany jest usuwany
+            loser.place = total_athletes
+            loser.save()
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         winner = self.winner if self.winner else "No Winner"

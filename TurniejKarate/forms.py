@@ -1,60 +1,44 @@
 from django import forms
 from .models import Round, Athlete, Tournament
 
+
 class RoundForm(forms.ModelForm):
     class Meta:
         model = Round
-        fields = ['tournament', 'athlete1', 'athlete2', 'round_number']
+        fields = ['tournament', 'athlete1', 'athlete2', 'round_number', 'winner']
         labels = {
             'tournament': 'Tournament',
             'athlete1': 'Athlete 1',
             'athlete2': 'Athlete 2',
             'round_number': 'Round Number',
+            'winner': 'Winner',
         }
 
     def __init__(self, *args, **kwargs):
+        # Pobieramy dodatkowe dane przekazane do formularza
+        athlete1 = kwargs.pop('athlete1', None)
+        athlete2 = kwargs.pop('athlete2', None)
         super().__init__(*args, **kwargs)
-        self.fields['athlete1'].queryset = Athlete.objects.all()
-        self.fields['athlete2'].queryset = Athlete.objects.all()
 
-    def clean(self):
-        cleaned_data = super().clean()
-        tournament = cleaned_data.get("tournament")
-        athlete1 = cleaned_data.get("athlete1")
-        athlete2 = cleaned_data.get("athlete2")
+        # Pole `winner` na początku jest puste
+        self.fields['winner'].queryset = Athlete.objects.none()
 
         if athlete1 and athlete2:
-            if athlete1 == athlete2:
-                raise forms.ValidationError("Both athletes cannot be the same.")
-            if tournament and (athlete1 not in tournament.athletes.all() or athlete2 not in tournament.athletes.all()):
-                raise forms.ValidationError("Both athletes must be participants in the selected tournament.")
-
-        return cleaned_data
-
-
-class RoundForm(forms.ModelForm):
-    class Meta:
-        model = Round
-        fields = ['tournament', 'athlete1', 'athlete2', 'round_number']
-        labels = {
-            'tournament': 'Tournament',
-            'athlete1': 'Athlete 1',
-            'athlete2': 'Athlete 2',
-            'round_number': 'Round Number',
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['athlete1'].queryset = Athlete.objects.all()
-        self.fields['athlete2'].queryset = Athlete.objects.all()
+            # Ograniczamy wybór zwycięzcy do wybranych zawodników
+            self.fields['winner'].queryset = Athlete.objects.filter(id__in=[athlete1.id, athlete2.id])
 
     def clean(self):
         cleaned_data = super().clean()
-        tournament = cleaned_data.get("tournament")
         athlete1 = cleaned_data.get("athlete1")
         athlete2 = cleaned_data.get("athlete2")
+        winner = cleaned_data.get("winner")
 
-        if tournament and athlete1 and athlete2:
-            if not (athlete1 in tournament.athletes.all() and athlete2 in tournament.athletes.all()):
-                raise forms.ValidationError("Obaj zawodnicy muszą brać udział w wybranym turnieju.")
+        # Walidacja: zwycięzca musi należeć do uczestników rundy
+        if winner not in [athlete1, athlete2]:
+            raise forms.ValidationError("Winner must be either Athlete 1 or Athlete 2.")
+
+        # Walidacja: zawodnicy muszą być w tej samej kategorii wagowej
+        if athlete1 and athlete2 and athlete1.weight_category != athlete2.weight_category:
+            raise forms.ValidationError("Athletes must belong to the same weight category.")
+
         return cleaned_data

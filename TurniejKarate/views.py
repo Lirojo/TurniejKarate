@@ -81,17 +81,39 @@ class TournamentDetailView(TemplateView):
 class RoundCreateView(CreateView):
     model = Round
     template_name = 'round_form.html'
-    fields = ['tournament', 'athlete1', 'athlete2', 'round_number']
+    form_class = RoundForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if self.request.method == 'POST':
+            # Pobieramy dane z POST i przekazujemy je do formularza
+            athlete1_id = self.request.POST.get('athlete1')
+            athlete2_id = self.request.POST.get('athlete2')
+            athlete1 = Athlete.objects.filter(id=athlete1_id).first()
+            athlete2 = Athlete.objects.filter(id=athlete2_id).first()
+
+            # Przekazujemy zawodników do formularza
+            kwargs['athlete1'] = athlete1
+            kwargs['athlete2'] = athlete2
+        return kwargs
 
     def form_valid(self, form):
+        winner = form.cleaned_data.get('winner')
+        if not winner:
+            form.add_error('winner', "Please select a winner.")
+            return self.form_invalid(form)
+
+        # Usuwamy przegranego zawodnika z turnieju
         athlete1 = form.cleaned_data['athlete1']
         athlete2 = form.cleaned_data['athlete2']
         tournament = form.cleaned_data['tournament']
 
-        # Sprawdzamy, czy obaj zawodnicy są przypisani do turnieju
-        if athlete1 not in tournament.athletes.all() or athlete2 not in tournament.athletes.all():
-            form.add_error(None, "Obaj zawodnicy muszą brać udział w wybranym turnieju.")
-            return self.form_invalid(form)
+        loser = athlete1 if winner == athlete2 else athlete2
+        tournament.athletes.remove(loser)
+
+        # Zaktualizuj miejsce przegranego (np. w zależności od turnieju)
+        loser_place = tournament.athletes.count() + 1  # Przyjmujemy, że miejsce to liczba pozostałych + 1
+        loser.save()  # Zakładamy, że przechowujesz miejsce zawodnika w osobnym polu
 
         return super().form_valid(form)
 
@@ -175,3 +197,16 @@ def add_round(request):
     else:
         form = RoundForm()
     return render(request, 'round_form.html', {'form': form})
+
+
+
+def add_athletes_to_tournament(request, tournament_id):
+    tournament = get_object_or_404(Tournament, id=tournament_id)
+    if request.method == 'POST':
+        athlete_ids = request.POST.getlist('athletes')  # Pobieramy listę ID zawodników z formularza
+        athletes = Athlete.objects.filter(id__in=athlete_ids)
+        tournament.athletes.add(*athletes)  # Przypisujemy zawodników do turnieju
+        return redirect('tournament_detail', tournament_id=tournament.id)
+    else:
+        all_athletes = Athlete.objects.all()
+        return render(request, 'add_athletes.html', {'tournament': tournament, 'athletes': all_athletes})

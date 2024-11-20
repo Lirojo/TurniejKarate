@@ -1,10 +1,21 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
 {% block content %}
-  <h1>Dodaj Rundę</h1>
- <form method="post">
+<h1>Dodaj rundę</h1>
+
+<form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Save</button>
+
+    <label for="id_winner">Wybierz zwycięzcę:</label>
+    <select name="winner" id="id_winner">
+        {% for athlete in form.fields.winner.queryset %}
+            <option value="{{ athlete.id }}" {% if form.winner.value == athlete.id %}selected{% endif %}>
+                {{ athlete.first_name }} {{ athlete.last_name }} - {{ athlete.weight_category }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Dodaj rundę</button>
 </form>
+<a href="{% url 'round_list' %}">Powrót do listy rund</a>
 {% endblock %}

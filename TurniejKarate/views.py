@@ -86,16 +86,37 @@ class RoundCreateView(CreateView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         if self.request.method == 'POST':
-            # Pobieramy dane z POST i przekazujemy je do formularza
             athlete1_id = self.request.POST.get('athlete1')
             athlete2_id = self.request.POST.get('athlete2')
             athlete1 = Athlete.objects.filter(id=athlete1_id).first()
             athlete2 = Athlete.objects.filter(id=athlete2_id).first()
-
-            # Przekazujemy zawodników do formularza
             kwargs['athlete1'] = athlete1
             kwargs['athlete2'] = athlete2
         return kwargs
+
+    def form_valid(self, form):
+        winner = form.cleaned_data.get('winner')
+        if not winner:
+            form.add_error('winner', "Please select a winner.")
+            return self.form_invalid(form)
+
+        # Usuwamy przegranego zawodnika z turnieju
+        athlete1 = form.cleaned_data['athlete1']
+        athlete2 = form.cleaned_data['athlete2']
+        tournament = form.cleaned_data['tournament']
+
+        loser = athlete1 if winner == athlete2 else athlete2
+        tournament.athletes.remove(loser)
+
+        # Zaktualizuj miejsce przegranego
+        loser_place = tournament.athletes.count() + 1  # Przyjmujemy, że miejsce to liczba pozostałych + 1
+        loser.place = loser_place
+        loser.save()
+
+        return super().form_valid(form)
+
+    success_url = reverse_lazy('round_results')
+
 
     def form_valid(self, form):
         winner = form.cleaned_data.get('winner')
@@ -210,3 +231,4 @@ def add_athletes_to_tournament(request, tournament_id):
     else:
         all_athletes = Athlete.objects.all()
         return render(request, 'add_athletes.html', {'tournament': tournament, 'athletes': all_athletes})
+

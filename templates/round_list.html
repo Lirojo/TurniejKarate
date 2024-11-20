@@ -11,7 +11,7 @@
         {% for round in tournament_info.rounds %}
             <li>
                 Runda {{ round.round_number }}: 
-                {{ round.athlete1 }} vs {{ round.athlete2 }} - Zwycięzca: 
+                {{ round.athlete1 }} vs {{ round.athlete2 }} - Zwycięzca:
                 {% if round.winner %} {{ round.winner }} {% else %} Brak {% endif %}
             </li>
         {% endfor %}

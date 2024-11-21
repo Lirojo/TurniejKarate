@@ -1,34 +1,34 @@
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse_lazy,reverse
-from django.views.generic import TemplateView, ListView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView,TemplateView
 from .models import Athlete, Tournament, Round, WeightCategory
 from .forms import RoundForm
-
-
 class HomeView(TemplateView):
     template_name = 'home.html'  # Szablon strony głównej
 
-
+@method_decorator(login_required, name='dispatch')
 class AthleteListView(ListView):
     model = Athlete
     template_name = 'athlete_list.html'  # Szablon listy zawodników
     context_object_name = 'athletes'
 
-
+@method_decorator(login_required, name='dispatch')
 class AthleteCreateView(CreateView):
     model = Athlete
     template_name = 'athlete_form.html'  # Szablon formularza dodawania zawodnika
-    fields = ['first_name', 'last_name', 'age', 'weight', 'gender', 'belt_level', 'karate_style', 'club',]
+    fields = ['first_name', 'last_name', 'age', 'weight', 'gender', 'belt_level', 'karate_style', 'club', ]
     success_url = reverse_lazy('athlete_list')  # Po dodaniu zawodnika wracamy na listę zawodników
 
-
+@method_decorator(login_required, name='dispatch')
 class AthleteUpdateView(UpdateView):
     model = Athlete
     template_name = 'athlete_form.html'  # Formularz do edycji zawodnika
-    fields = ['first_name', 'last_name', 'age', 'weight', 'gender', 'belt_level', 'karate_style', 'club',]
+    fields = ['first_name', 'last_name', 'age', 'weight', 'gender', 'belt_level', 'karate_style', 'club', ]
     success_url = reverse_lazy('athlete_list')  # Po edycji wracamy na listę zawodników
 
-
+@method_decorator(login_required, name='dispatch')
 class AthleteDeleteView(DeleteView):
     model = Athlete
     template_name = 'athlete_confirm_delete.html'  # Szablon potwierdzenia usunięcia
@@ -77,7 +77,7 @@ class TournamentDetailView(TemplateView):
                 categories[category] = athletes_in_category
         return categories
 
-
+@method_decorator(login_required, name='dispatch')
 class RoundCreateView(CreateView):
     model = Round
     template_name = 'round_form.html'
@@ -117,7 +117,6 @@ class RoundCreateView(CreateView):
 
     success_url = reverse_lazy('round_results')
 
-
     def form_valid(self, form):
         winner = form.cleaned_data.get('winner')
         if not winner:
@@ -140,7 +139,7 @@ class RoundCreateView(CreateView):
 
     success_url = reverse_lazy('round_list')
 
-
+@method_decorator(login_required, name='dispatch')
 class RoundListView(ListView):
     model = Round
     template_name = 'round_list.html'

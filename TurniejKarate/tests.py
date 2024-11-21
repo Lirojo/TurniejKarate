@@ -4,6 +4,13 @@ from django.test import Client
 from django.core.exceptions import ValidationError
 from TurniejKarate.models import Tournament, Athlete, Round, Club, WeightCategory
 from TurniejKarate.forms import RoundForm
+from django.contrib.auth.models import User
+
+
+@pytest.fixture
+def user():
+    user = User.objects.create_user(username='testuser', password='password')
+    return user
 
 
 @pytest.fixture
@@ -140,18 +147,24 @@ def test_round_form_invalid_winner(athlete1, athlete2, tournament):
 
 
 @pytest.mark.django_db
-def test_round_create_view_get(client, tournament, athlete1, athlete2):
+def test_round_create_view_get(client, tournament, athlete1, athlete2, user):
+    # Zalogowanie użytkownika przed wysłaniem zapytania
+    client.login(username=user.username, password='password')  # Użyj odpowiednich danych użytkownika
+
     url = reverse('round_create')
     response = client.get(url)
+
+    # Sprawdzenie, czy status odpowiedzi to 200
     assert response.status_code == 200
     assert 'form' in response.context
     assert response.template_name == ['round_form.html']
 
 
-
-
 @pytest.mark.django_db
-def test_round_create_view_post_invalid(client, tournament, athlete1, athlete2):
+def test_round_create_view_post_invalid(client, tournament, athlete1, athlete2, user):
+    # Zalogowanie użytkownika przed wysłaniem zapytania
+    client.login(username=user.username, password='password')  # Użyj odpowiednich danych użytkownika
+
     url = reverse('round_create')
     form_data = {
         'tournament': tournament.id,
@@ -227,6 +240,7 @@ def test_athlete_weight_validation():
     with pytest.raises(ValidationError):
         athlete.clean()
 
+
 @pytest.mark.django_db
 def test_round_no_winner(client, tournament, athlete1, athlete2):
     round_ = Round(
@@ -248,13 +262,12 @@ def test_add_athletes_to_tournament(client, tournament, athlete1, athlete2):
     assert tournament.athletes.count() == 0
 
 
-
-
 @pytest.mark.django_db
 def test_tournament_detail_invalid_id(client):
     url = reverse('tournament_detail', args=[9999])  # Nieistniejący turniej
     response = client.get(url)
     assert response.status_code == 404
+
 
 @pytest.mark.django_db
 def test_male_female_cannot_fight(client, tournament, athlete1, athlete2):
@@ -274,6 +287,7 @@ def test_male_female_cannot_fight(client, tournament, athlete1, athlete2):
 
     with pytest.raises(ValidationError):
         round_.clean()  # Powinien rzucić błąd walidacji
+
 
 @pytest.mark.django_db
 def test_different_weight_categories_cannot_fight(client, tournament, athlete1, athlete2):

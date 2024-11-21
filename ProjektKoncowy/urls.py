@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.contrib.auth import views as auth_views
 from TurniejKarate.views import (
     HomeView,
     AthleteListView,
@@ -34,7 +35,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', HomeView.as_view(), name='home'),  # Strona główna
 
-    # Ścieżki dla zawodników
+    # Ścieżki dla logowania i wylogowywania
+    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
+
+    # Ścieżki dla zawodników (zabezpieczone logowaniem)
     path('athletes/', AthleteListView.as_view(), name='athlete_list'),  # Lista zawodników
     path('athletes/add/', AthleteCreateView.as_view(), name='athlete_create'),  # Dodanie zawodnika
     path('athletes/<int:pk>/edit/', AthleteUpdateView.as_view(), name='athlete_update'),  # Edytowanie zawodnika
@@ -49,8 +54,7 @@ urlpatterns = [
     path('rounds/add/', RoundCreateView.as_view(), name='round_create'),  # Dodanie rundy
     path('add-round/', add_round, name='add_round'),  # Formularz dodawania rundy
     path('rounds/', RoundListView.as_view(), name='round_list'),  # Lista rund
-    path('tournament/<int:tournament_id>/add-athletes/', add_athletes_to_tournament, #Przypisanie zawodników do turnieju
+    path('tournament/<int:tournament_id>/add-athletes/', add_athletes_to_tournament,
+         # Przypisanie zawodników do turnieju
          name='add_athletes_to_tournament'),
-
 ]
-

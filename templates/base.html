@@ -10,31 +10,38 @@
     {% block extra_styles %}{% endblock %}
 </head>
 <body>
-    <div class="container">
-        <header class="my-4">
-            <h1>Witamy w aplikacji!</h1>
-            <nav>
-                <ul class="nav">
-                    <li class="nav-item"><a href="{% url 'home' %}" class="nav-link">Strona główna</a></li>
-                    <li class="nav-item"><a href="{% url 'athlete_list' %}" class="nav-link">Lista Zawodników</a></li>
-                    <li class="nav-item"><a href="{% url 'round_list' %}" class="nav-link">Rundy</a></li>
-                    <li class="nav-item"><a href="{% url 'round_create' %}" class="nav-link">Dodaj rundę</a></li>
-                    <!-- Dodaj inne linki, jeśli potrzebujesz -->
-                </ul>
-            </nav>
-        </header>
+<div class="container">
+    <header class="my-4">
+        <h1>Witamy w aplikacji!</h1>
+        <nav>
+            <ul class="nav">
+                <li class="nav-item"><a href="{% url 'home' %}" class="nav-link">Strona główna</a></li>
+                <li class="nav-item"><a href="{% url 'athlete_list' %}" class="nav-link">Lista Zawodników</a></li>
+                <li class="nav-item"><a href="{% url 'round_list' %}" class="nav-link">Rundy</a></li>
+                <li class="nav-item"><a href="{% url 'round_create' %}" class="nav-link">Dodaj rundę</a></li>
+                {% if user.is_authenticated %}
+                    <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Wyloguj się</button>
+                    </form>
+                {% else %}
+                    <li class="nav-item"><a href="{% url 'login' %}" class="nav-link">Zaloguj się</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
 
-        <main>
-            {% block content %}{% endblock %}
-        </main>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
 
-        <footer class="my-4">
-            <p>&copy; 2024 Moja Aplikacja</p>
-        </footer>
-    </div>
+    <footer class="my-4">
+        <p>&copy; 2024 Moja Aplikacja</p>
+    </footer>
+</div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-    {% block extra_scripts %}{% endblock %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+{% block extra_scripts %}{% endblock %}
 </body>
 </html>

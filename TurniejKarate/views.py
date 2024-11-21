@@ -220,15 +220,29 @@ def add_round(request):
     return render(request, 'round_form.html', {'form': form})
 
 
-
 def add_athletes_to_tournament(request, tournament_id):
     tournament = get_object_or_404(Tournament, id=tournament_id)
+
     if request.method == 'POST':
         athlete_ids = request.POST.getlist('athletes')  # Pobieramy listę ID zawodników z formularza
+        weight_categories = request.POST.getlist('categories')  # Pobieramy listę kategorii dla zawodników
+
         athletes = Athlete.objects.filter(id__in=athlete_ids)
-        tournament.athletes.add(*athletes)  # Przypisujemy zawodników do turnieju
+
+        # Iterujemy po wszystkich zawodnikach i przypisujemy im kategorię wagową
+        for athlete, category_id in zip(athletes, weight_categories):
+            category = get_object_or_404(WeightCategory, id=category_id)
+            athlete.weight_category = category  # Przypisujemy kategorię wagową zawodnikowi
+            athlete.save()  # Zapisujemy zmiany w zawodniku
+            tournament.athletes.add(athlete)  # Dodajemy zawodnika do turnieju
+
         return redirect('tournament_detail', tournament_id=tournament.id)
+
     else:
         all_athletes = Athlete.objects.all()
-        return render(request, 'add_athletes.html', {'tournament': tournament, 'athletes': all_athletes})
-
+        weight_categories = WeightCategory.objects.all()  # Pobieramy wszystkie kategorie wagowe
+        return render(request, 'add_athletes.html', {
+            'tournament': tournament,
+            'athletes': all_athletes,
+            'categories': weight_categories,
+        })

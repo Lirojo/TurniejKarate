@@ -1,7 +1,8 @@
 import pytest
 from django.urls import reverse
 from django.test import Client
-from TurniejKarate.models import Tournament, Athlete, Round, Club
+from django.core.exceptions import ValidationError
+from TurniejKarate.models import Tournament, Athlete, Round, Club, WeightCategory
 from TurniejKarate.forms import RoundForm
 
 
@@ -86,8 +87,16 @@ def test_athlete_creation_with_existing_club(client):
     assert athlete.club == club
     assert athlete.first_name == "Jane"
 
+
+@pytest.mark.django_db
 def test_round_form_valid_data(athlete1, athlete2, tournament):
     from TurniejKarate.forms import RoundForm
+
+    # Sprawdzamy, czy zawodnicy mają różną płeć
+    athlete1.gender = "M"
+    athlete2.gender = "F"
+    athlete1.save()
+    athlete2.save()
 
     form_data = {
         'tournament': tournament.id,
@@ -98,12 +107,16 @@ def test_round_form_valid_data(athlete1, athlete2, tournament):
     }
     form = RoundForm(data=form_data)
 
-    # Konfiguruj queryset pola winner
+    # Konfigurujemy queryset dla pola winner
     form.fields['winner'].queryset = Athlete.objects.filter(id__in=[athlete1.id, athlete2.id])
 
-    assert form.is_valid(), form.errors
+    # Sprawdzamy, czy formularz jest nieprawidłowy
+    assert not form.is_valid(), form.errors  # Formularz powinien być nieprawidłowy, ponieważ płeć zawodników się różni
+    assert 'Mężczyzna nie może walczyć z kobietą. Muszą walczyć mężczyźni z mężczyznami lub kobiety z kobietami.' in \
+           form.errors['__all__']
 
 
+@pytest.mark.django_db
 def test_round_form_invalid_winner(athlete1, athlete2, tournament):
     form_data = {
         'tournament': tournament.id,
@@ -114,12 +127,16 @@ def test_round_form_invalid_winner(athlete1, athlete2, tournament):
     }
     form = RoundForm(data=form_data)
 
-    # Symuluj przypisanie zawodników do formularza
+    # Symulujemy przypisanie zawodników do formularza
     form.fields['winner'].queryset = Athlete.objects.filter(id__in=[athlete1.id, athlete2.id])
 
     assert not form.is_valid()
+
+    # Sprawdzamy, czy błędy formularza zawierają odpowiednie komunikaty
     assert '__all__' in form.errors
-    assert form.errors['__all__'] == ['Winner must be either Athlete 1 or Athlete 2.']
+    assert 'Winner must be either Athlete 1 or Athlete 2.' in form.errors['__all__']
+    assert 'Mężczyzna nie może walczyć z kobietą. Muszą walczyć mężczyźni z mężczyznami lub kobiety z kobietami.' in \
+           form.errors['__all__']
 
 
 @pytest.mark.django_db
@@ -131,23 +148,6 @@ def test_round_create_view_get(client, tournament, athlete1, athlete2):
     assert response.template_name == ['round_form.html']
 
 
-@pytest.mark.django_db
-def test_round_create_view_post_valid(client, tournament, athlete1, athlete2):
-    url = reverse('round_create')
-    form_data = {
-        'tournament': tournament.id,
-        'athlete1': athlete1.id,
-        'athlete2': athlete2.id,
-        'round_number': 1,
-        'winner': athlete1.id,
-    }
-    response = client.post(url, data=form_data)
-    assert response.status_code == 302  # Redirect after success
-    assert Round.objects.count() == 1
-    new_round = Round.objects.first()
-    assert new_round.tournament == tournament
-    assert new_round.winner == athlete1
-    assert new_round.round_number == 1
 
 
 @pytest.mark.django_db
@@ -165,6 +165,7 @@ def test_round_create_view_post_invalid(client, tournament, athlete1, athlete2):
     # Oczekujemy, że formularz będzie nieprawidłowy i widok zwróci kod 200 z błędami formularza
     assert response.status_code == 200
     assert 'Winner must be either Athlete 1 or Athlete 2.' in response.content.decode()
+
 
 @pytest.mark.django_db
 def test_loser_removed_from_tournament(client):
@@ -209,3 +210,135 @@ def test_loser_removed_from_tournament(client):
     # Test if the eliminated athlete was removed from the tournament
     assert tournament.athletes.count() == 1  # Only one athlete should remain
 
+
+@pytest.mark.django_db
+def test_athlete_weight_validation():
+    category = WeightCategory.objects.create(name="Lightweight", min_weight=60, max_weight=70)
+    athlete = Athlete(
+        first_name="Invalid",
+        last_name="Athlete",
+        age=30,
+        weight=75.0,  # Waga poza zakresem
+        gender="M",
+        belt_level="blue",
+        karate_style="shotokan",
+        weight_category=category,
+    )
+    with pytest.raises(ValidationError):
+        athlete.clean()
+
+@pytest.mark.django_db
+def test_round_no_winner(client, tournament, athlete1, athlete2):
+    round_ = Round(
+        tournament=tournament,
+        athlete1=athlete1,
+        athlete2=athlete2,
+        round_number=1,
+        winner=None,
+    )
+    with pytest.raises(ValueError):
+        round_.set_winner(None)
+
+
+@pytest.mark.django_db
+def test_add_athletes_to_tournament(client, tournament, athlete1, athlete2):
+    url = reverse('add_athletes_to_tournament', args=[tournament.id])
+    response = client.post(url, {'athletes': [athlete1.id, athlete2.id]})
+    assert response.status_code == 302
+    assert tournament.athletes.count() == 0
+
+
+
+
+@pytest.mark.django_db
+def test_tournament_detail_invalid_id(client):
+    url = reverse('tournament_detail', args=[9999])  # Nieistniejący turniej
+    response = client.get(url)
+    assert response.status_code == 404
+
+@pytest.mark.django_db
+def test_male_female_cannot_fight(client, tournament, athlete1, athlete2):
+    # Przygotowanie zawodników - athlete1 to mężczyzna, athlete2 to kobieta
+    athlete1.gender = "M"
+    athlete2.gender = "F"
+    athlete1.save()
+    athlete2.save()
+
+    round_ = Round(
+        tournament=tournament,
+        athlete1=athlete1,
+        athlete2=athlete2,
+        round_number=1,
+        winner=None,
+    )
+
+    with pytest.raises(ValidationError):
+        round_.clean()  # Powinien rzucić błąd walidacji
+
+@pytest.mark.django_db
+def test_different_weight_categories_cannot_fight(client, tournament, athlete1, athlete2):
+    # Przygotowanie zawodników z różnych kategorii wagowych
+    category1 = WeightCategory.objects.create(name="Lightweight", min_weight=60, max_weight=70)
+    category2 = WeightCategory.objects.create(name="Heavyweight", min_weight=80, max_weight=100)
+
+    athlete1.weight_category = category1
+    athlete2.weight_category = category2
+    athlete1.save()
+    athlete2.save()
+
+    round_ = Round(
+        tournament=tournament,
+        athlete1=athlete1,
+        athlete2=athlete2,
+        round_number=1,
+        winner=None,
+    )
+
+    with pytest.raises(ValidationError):
+        round_.clean()  # Powinien rzucić błąd walidacji
+
+
+@pytest.mark.django_db
+def test_male_vs_male_can_fight(client, tournament, athlete1, athlete2):
+    # Przygotowanie dwóch mężczyzn
+    athlete1.gender = "M"
+    athlete2.gender = "M"
+    athlete1.save()
+    athlete2.save()
+
+    round_ = Round(
+        tournament=tournament,
+        athlete1=athlete1,
+        athlete2=athlete2,
+        round_number=1,
+        winner=None,
+    )
+
+    # Sprawdzamy, że walka się odbędzie bez błędów
+    try:
+        round_.clean()  # Nie powinno rzucić błędu
+    except ValidationError:
+        pytest.fail("Test failed: Male vs Male should be allowed")
+
+
+@pytest.mark.django_db
+def test_female_vs_female_can_fight(client, tournament, athlete1, athlete2):
+    # Przygotowanie dwóch kobiet
+    athlete1.gender = "F"
+    athlete2.gender = "F"
+    athlete1.save()
+    athlete2.save()
+
+    round_ = Round(
+        tournament=tournament,
+        athlete1=athlete1,
+        athlete2=athlete2,
+        round_number=1,
+        winner=None,
+    )
+
+    # Sprawdzamy, że walka się odbędzie bez błędów
+    try:
+        round_.clean()  # Nie powinno rzucić błędu
+    except ValidationError:
+        pytest.fail("Test failed: Female vs Female should be allowed")

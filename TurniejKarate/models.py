@@ -111,6 +111,17 @@ class Round(models.Model):
 
         super().save(*args, **kwargs)
 
+
+    def clean(self):
+        # Sprawdzenie, czy zawodnicy są tej samej płci
+        if self.athlete1.gender != self.athlete2.gender:
+            raise ValidationError(
+                "Mężczyzna nie może walczyć z kobietą. Muszą walczyć mężczyźni z mężczyznami lub kobiety z kobietami.")
+
+        # Sprawdzenie, czy zawodnicy są w tej samej kategorii wagowej
+        if self.athlete1.weight_category != self.athlete2.weight_category:
+            raise ValidationError("Zawodnicy muszą być w tej samej kategorii wagowej, aby mogli ze sobą walczyć.")
+
     def __str__(self):
         winner = self.winner if self.winner else "No Winner"
         return f"Round {self.round_number} - {self.athlete1} vs {self.athlete2} (Winner: {winner})"
